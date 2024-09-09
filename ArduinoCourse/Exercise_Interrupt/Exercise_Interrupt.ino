@@ -1,6 +1,9 @@
 #define LED_PIN 12
 #define BUTTON_PIN 2
 
+volatile unsigned long lastTimeButtonReleased = millis();
+unsigned long debounceDelay = 50; // volatile not needed since not modifying the value
+
 byte LEDState = LOW;
 volatile bool buttonReleased = false;
 
@@ -19,7 +22,12 @@ void toggleLED()
 
 void buttonReleasedInterrupt()
 {
-  buttonReleased = true;
+  unsigned long timeNow = millis();
+  if (timeNow - lastTimeButtonReleased > debounceDelay)
+  {
+    lastTimeButtonReleased = timeNow;
+    buttonReleased = true;
+  }
 }
 
 void setup() {
