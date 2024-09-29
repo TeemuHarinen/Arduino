@@ -11,6 +11,7 @@ volatile unsigned long pulseInTimeBegin;
 volatile unsigned long pulseInTimeEnd;
 volatile bool newDistanceAvailable = false;
 
+double previousDistance = 0;
 void triggerUltrasonicSensor()
 {
   digitalWrite(TRIGGER_PIN, LOW);
@@ -23,7 +24,10 @@ void triggerUltrasonicSensor()
 double getUltrasonicDistance()
 {
   double durationMicros = pulseInTimeEnd - pulseInTimeBegin;
-  double distance = durationMicros / 58.0; //  -> cm
+  double distance = durationMicros / 58.0; //  -> cm (148.0 for inches)
+
+  distance = previousDistance * 0.7 + distance * 0.3; // Complimentary filter, reduces false sensor reading effect due to sh*t hardware :)
+  previousDistance = distance;
   return distance;
 }
 
@@ -62,7 +66,6 @@ void powerLEDs(double distance)
     }
 }
 
-
 void setup() {
   Serial.begin(115200);
   pinMode(ECHO_PIN, INPUT);
@@ -91,7 +94,7 @@ void loop() {
     newDistanceAvailable = false;
     double distance = getUltrasonicDistance();
     Serial.println(distance);
-    
+
     powerLEDs(distance);
   }
 }
